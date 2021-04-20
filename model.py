@@ -23,9 +23,9 @@ class MODEL(nn.Module):
         self.read_embed_linear = nn.Linear(self.memory_value_state_dim + self.final_fc_dim, self.final_fc_dim, bias=True)
         self.predict_linear = nn.Linear(self.final_fc_dim, 1, bias=True)
         self.init_memory_key = nn.Parameter(torch.randn(self.memory_size, self.memory_key_state_dim))
-        nn.init.kaiming_normal(self.init_memory_key)
+        nn.init.kaiming_normal_(self.init_memory_key)
         self.init_memory_value = nn.Parameter(torch.randn(self.memory_size, self.memory_value_state_dim))
-        nn.init.kaiming_normal(self.init_memory_value)
+        nn.init.kaiming_normal_(self.init_memory_value)
 
         self.mem = DKVMN(memory_size=self.memory_size,
                    memory_key_state_dim=self.memory_key_state_dim,
@@ -38,17 +38,17 @@ class MODEL(nn.Module):
         self.qa_embed = nn.Embedding(2 * self.n_question + 1, self.qa_embed_dim, padding_idx=0)
 
     def init_params(self):
-        nn.init.kaiming_normal(self.predict_linear.weight)
-        nn.init.kaiming_normal(self.read_embed_linear.weight)
-        nn.init.constant(self.read_embed_linear.bias, 0)
-        nn.init.constant(self.predict_linear.bias, 0)
-        # nn.init.constant(self.input_embed_linear.bias, 0)
+        nn.init.kaiming_normal_(self.predict_linear.weight)
+        nn.init.kaiming_normal_(self.read_embed_linear.weight)
+        nn.init.constant_(self.read_embed_linear.bias, 0)
+        nn.init.constant_(self.predict_linear.bias, 0)
+        # nn.init.constant_(self.input_embed_linear.bias, 0)
         # nn.init.normal(self.input_embed_linear.weight, std=0.02)
 
     def init_embeddings(self):
-
-        nn.init.kaiming_normal(self.q_embed.weight)
-        nn.init.kaiming_normal(self.qa_embed.weight)
+                                                  
+        nn.init.kaiming_normal_(self.q_embed.weight)
+        nn.init.kaiming_normal_(self.qa_embed.weight)
 
     def forward(self, q_data, qa_data, target, student_id=None):
 

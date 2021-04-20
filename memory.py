@@ -18,10 +18,10 @@ class DKVMNHeadGroup(nn.Module):
         if self.is_write:
             self.erase = torch.nn.Linear(self.memory_state_dim, self.memory_state_dim, bias=True)
             self.add = torch.nn.Linear(self.memory_state_dim, self.memory_state_dim, bias=True)
-            nn.init.kaiming_normal(self.erase.weight)
-            nn.init.kaiming_normal(self.add.weight)
-            nn.init.constant(self.erase.bias, 0)
-            nn.init.constant(self.add.bias, 0)
+            nn.init.kaiming_normal_(self.erase.weight)
+            nn.init.kaiming_normal_(self.add.weight)
+            nn.init.constant_(self.erase.bias, 0)
+            nn.init.constant_(self.add.bias, 0)
 
 
     def addressing(self, control_input, memory):

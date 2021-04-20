@@ -36,7 +36,7 @@ def train(epoch_num, model, params, optimizer, q_data, qa_data):
         model.zero_grad()
         loss, filtered_pred, filtered_target = model.forward(input_q, input_qa, target_1d)
         loss.backward()
-        nn.utils.clip_grad_norm(model.parameters(), params.maxgradnorm)
+        nn.utils.clip_grad_norm_(model.parameters(), params.maxgradnorm)
         optimizer.step()
         epoch_loss += utils.to_scalar(loss)
 
