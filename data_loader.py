@@ -19,6 +19,12 @@ class DATA(object):
     ### 1,1,1,1,7,7,9,10,10,10,10,11,11,45,54
     ### 0,1,1,1,1,1,0,0,1,1,1,1,1,0,0
     def load_data(self, path):
+        """
+        :param path:
+        :return:
+        q_dataArray shape(len(dataset/3),seqlen)  question id
+        qa_dataArray shape(len(dataset/3),seqlen) ans question id + 110(right) + 0(error)
+        """
         f_data = open(path , 'r')
         q_data = []
         qa_data = []
@@ -65,7 +71,7 @@ class DATA(object):
         f_data.close()
         ### data: [[],[],[],...] <-- set_max_seqlen is used
         ### convert data into ndarrays for better speed during training
-        q_dataArray = np.zeros((len(q_data), self.seqlen))
+        q_dataArray = np.zeros((len(q_data), self.seqlen)) # 创建一个长度为数据集数量，宽度为最大序列长度
         for j in range(len(q_data)):
             dat = q_data[j]
             q_dataArray[j, :len(dat)] = dat

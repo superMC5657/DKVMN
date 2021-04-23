@@ -57,9 +57,9 @@ class DKVMNHeadGroup(nn.Module):
     def write(self, control_input, memory, write_weight=None):
         """
         Parameters
-            control_input:      Shape (batch_size, control_state_dim)
-            write_weight:       Shape (batch_size, memory_size)
-            memory:             Shape (batch_size, memory_size, memory_state_dim)
+            control_input:      Shape (batch_size, control_state_dim) qa
+            write_weight:       Shape (batch_size, memory_size) cor_weight
+            memory:             Shape (batch_size, memory_size, memory_state_dim)  if_memo_write
         Returns
             new_memory:         Shape (batch_size, memory_size, memory_state_dim)
         """
@@ -68,9 +68,9 @@ class DKVMNHeadGroup(nn.Module):
             write_weight = self.addressing(control_input=control_input, memory=memory)
         erase_signal = torch.sigmoid(self.erase(control_input))
         add_signal = torch.tanh(self.add(control_input))
-        erase_reshape = erase_signal.view(-1, 1, self.memory_state_dim)
+        erase_reshape = erase_signal.view(-1, 1, self.memory_state_dim) # (32, 1, 200)
         add_reshape = add_signal.view(-1, 1, self.memory_state_dim)
-        write_weight_reshape = write_weight.view(-1, self.memory_size, 1)
+        write_weight_reshape = write_weight.view(-1, self.memory_size, 1) # (32, 20, 1)
         erase_mult = torch.mul(erase_reshape, write_weight_reshape)
         add_mul = torch.mul(add_reshape, write_weight_reshape)
         new_memory = memory * (1 - erase_mult) + add_mul
@@ -92,7 +92,7 @@ class DKVMN(nn.Module):
 
         self.key_head = DKVMNHeadGroup(memory_size=self.memory_size,
                                        memory_state_dim=self.memory_key_state_dim,
-                                       is_write=False)
+                                       is_write=False) # concept not write to memory value
 
         self.value_head = DKVMNHeadGroup(memory_size=self.memory_size,
                                          memory_state_dim=self.memory_value_state_dim,

@@ -22,9 +22,9 @@ class MODEL(nn.Module):
         self.input_embed_linear = nn.Linear(self.q_embed_dim, self.final_fc_dim, bias=True)
         self.read_embed_linear = nn.Linear(self.memory_value_state_dim + self.final_fc_dim, self.final_fc_dim, bias=True)
         self.predict_linear = nn.Linear(self.final_fc_dim, 1, bias=True)
-        self.init_memory_key = nn.Parameter(torch.randn(self.memory_size, self.memory_key_state_dim))
+        self.init_memory_key = nn.Parameter(torch.randn(self.memory_size, self.memory_key_state_dim)) # random
         nn.init.kaiming_normal_(self.init_memory_key)
-        self.init_memory_value = nn.Parameter(torch.randn(self.memory_size, self.memory_value_state_dim))
+        self.init_memory_value = nn.Parameter(torch.randn(self.memory_size, self.memory_value_state_dim)) #
         nn.init.kaiming_normal_(self.init_memory_value)
 
         self.mem = DKVMN(memory_size=self.memory_size,
@@ -46,7 +46,7 @@ class MODEL(nn.Module):
         # nn.init.normal(self.input_embed_linear.weight, std=0.02)
 
     def init_embeddings(self):
-                                                  
+
         nn.init.kaiming_normal_(self.q_embed.weight)
         nn.init.kaiming_normal_(self.qa_embed.weight)
 
@@ -71,7 +71,7 @@ class MODEL(nn.Module):
             ## Attention
             q = slice_q_embed_data[i].squeeze(1)
             correlation_weight = self.mem.attention(q)
-            if_memory_write = slice_q_data[i].squeeze(1).ge(1)
+            if_memory_write = slice_q_data[i].squeeze(1).ge(1) # q
             if_memory_write = utils.varible(torch.FloatTensor(if_memory_write.data.tolist()), 1)
 
 
@@ -87,7 +87,7 @@ class MODEL(nn.Module):
             # pred = self.predict_linear(read_content_embed)
             # predict_logs.append(pred)
 
-        all_read_value_content = torch.cat([value_read_content_l[i].unsqueeze(1) for i in range(seqlen)], 1)
+        all_read_value_content = torch.cat([value_read_content_l[i].unsqueeze(1) for i in range(seqlen)], 1) # 将每一个习题的内容拼接起来
         input_embed_content = torch.cat([input_embed_l[i].unsqueeze(1) for i in range(seqlen)], 1)
         # input_embed_content = input_embed_content.view(batch_size * seqlen, -1)
         # input_embed_content = torch.tanh(self.input_embed_linear(input_embed_content))
