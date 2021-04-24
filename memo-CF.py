@@ -10,6 +10,7 @@ from model import MODEL
 from utils import *
 import numpy as np
 from data_loader import DATA
+from torch.backends import cudnn
 
 display_tensorshape()
 seed = 73
@@ -19,8 +20,8 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 np.random.seed(seed)
-torch.backends.cudnn.benchmark = False
-torch.backends.cudnn.deterministic = True
+cudnn.benchmark = False
+cudnn.deterministic = True
 
 
 # 使用testset放入model中，生成memo_value

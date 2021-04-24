@@ -2,4 +2,5 @@
 .idea
 *.pyc
 log*
-checkpoints
+.DS_Store
+*__pycache__
