@@ -147,14 +147,13 @@ def main():
             best_valid_loss = valid_loss
             test_loss, test_accuracy, test_auc = test(model, params, optimizer, test_q_data, test_qa_data)
             print("test_auc: %.4f\ttest_accuracy: %.4f\ttest_loss: %.4f\t" % (test_auc, test_accuracy, test_loss))
-
             # save_checkpoint(model, memory, params.save + "/Epoch%d-test_auc%.2f-val_auc%.2f-loss%.2f.pt"%(best_epoch, test_auc, valid_auc, test_loss))
-            torch.save(model, params.save + "/Epoch%d-test_auc%.2f-val_auc%.2f-loss%.2f.pt" % (
-            best_epoch, test_auc, valid_auc, test_loss))
-            print("/Epoch%d-test_auc%.2f-val_auc%.2f-loss%.2f.pt" % (
-            best_epoch, test_auc, valid_auc, test_loss) + " save to " + params.save)
+            save_path = params.save + "/Epoch%d-test_auc%.2f-val_auc%.2f-loss%.2f.pt" % (best_epoch, test_auc, valid_auc, test_loss)
+            torch.save(model, save_path)
+            print(save_path + " save to " + params.save)
 
     print("best outcome: best epoch: %.4f" % (best_epoch))
+    os.system(f"mv {save_path} {params.save}/best.pt")
     print(
         "valid_auc: %.4f\tvalid_accuracy: %.4f\tvalid_loss: %.4f\t" % (best_valid_auc, best_valid_acc, best_valid_loss))
     print("test_auc: %.4f\ttest_accuracy: %.4f\ttest_loss: %.4f\t" % (test_auc, test_accuracy, test_loss))

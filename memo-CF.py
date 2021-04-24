@@ -10,6 +10,7 @@ from model import MODEL
 from utils import *
 import numpy as np
 from data_loader import DATA
+from run import knowledge_matrix
 
 display_tensorshape()
 seed = 73
@@ -72,7 +73,12 @@ def main():
     print(params)
     dat = DATA(n_question=params.n_question, seqlen=params.seqlen, separate_char=',')
     test_data_path = params.data_dir + "/" + params.data_name + "_test.csv"
-    test_q_data, test_qa_data = dat.load_data(test_data_path)
+    test_q_data, test_qa_data, test_id = dat.load_data(test_data_path)
+    model = torch.load(params.save+"/best.pt")
+    km = knowledge_matrix(model, params, test_id, test_q_data, test_qa_data)
+
+
+
 
 if __name__ == '__main__':
     main()
