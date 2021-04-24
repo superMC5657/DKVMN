@@ -26,11 +26,16 @@ class DATA(object):
         qa_dataArray shape(len(dataset/3),seqlen) ans question id + 110(right) + 0(error)
         """
         f_data = open(path , 'r')
+        id = []
         q_data = []
         qa_data = []
         for lineID, line in enumerate(f_data):
             line = line.strip( )
             # lineID starts from 0
+            if lineID % 3 == 0:
+                ID = line
+                if len(ID[len(ID)-1] ) == 0:
+                    ID = ID[:-1]
             if lineID % 3 == 1:
                 Q = line.split(self.separate_char)
                 if len( Q[len(Q)-1] ) == 0:
@@ -66,6 +71,7 @@ class DATA(object):
                         else:
                             print(Q[i])
                     #print('instance:-->', len(instance),instance)
+                    id.append(ID)
                     q_data.append(question_sequence)
                     qa_data.append(answer_sequence)
         f_data.close()
@@ -81,7 +87,7 @@ class DATA(object):
             dat = qa_data[j]
             qa_dataArray[j, :len(dat)] = dat
         # dataArray: [ array([[],[],..])] Shape: (3633, 200)
-        return q_dataArray, qa_dataArray
+        return q_dataArray, qa_dataArray, id
 
     def generate_all_index_data(self, batch_size):
         n_question = self.n_question

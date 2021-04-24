@@ -6,6 +6,7 @@ from torch import nn
 import utils as utils
 from sklearn import metrics
 
+
 def train(epoch_num, model, params, optimizer, q_data, qa_data):
     N = int(math.floor(len(q_data) / params.batch_size))
 
@@ -34,7 +35,7 @@ def train(epoch_num, model, params, optimizer, q_data, qa_data):
         target_1d = target_1d.permute(1, 0)
 
         model.zero_grad()
-        loss, filtered_pred, filtered_target = model.forward(input_q, input_qa, target_1d)
+        loss, filtered_pred, filtered_target, _ = model.forward(input_q, input_qa, target_1d)
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), params.maxgradnorm)
         optimizer.step()
@@ -62,7 +63,8 @@ def train(epoch_num, model, params, optimizer, q_data, qa_data):
     accuracy = metrics.accuracy_score(all_target, all_pred)
     # f1 = metrics.f1_score(all_target, all_pred)
 
-    return epoch_loss/N, accuracy, auc
+    return epoch_loss / N, accuracy, auc
+
 
 def test(model, params, optimizer, q_data, qa_data):
     N = int(math.floor(len(q_data) / params.batch_size))
@@ -74,7 +76,6 @@ def test(model, params, optimizer, q_data, qa_data):
 
     # init_memory_value = np.random.normal(0.0, params.init_std, ())
     for idx in range(N):
-
         q_one_seq = q_data[idx * params.batch_size:(idx + 1) * params.batch_size, :]
         qa_batch_seq = qa_data[idx * params.batch_size:(idx + 1) * params.batch_size, :]
         target = qa_data[idx * params.batch_size:(idx + 1) * params.batch_size, :]
@@ -82,15 +83,15 @@ def test(model, params, optimizer, q_data, qa_data):
         target = (target - 1) / params.n_question
         target = np.floor(target)
 
-        input_q = utils.varible(torch.LongTensor(q_one_seq), params.gpu) # shape 32,200
-        input_qa = utils.varible(torch.LongTensor(qa_batch_seq), params.gpu) #shape 32,200
-        target = utils.varible(torch.FloatTensor(target), params.gpu) # shape 32,200
+        input_q = utils.varible(torch.LongTensor(q_one_seq), params.gpu)  # shape 32,200
+        input_qa = utils.varible(torch.LongTensor(qa_batch_seq), params.gpu)  # shape 32,200
+        target = utils.varible(torch.FloatTensor(target), params.gpu)  # shape 32,200
 
         target_to_1d = torch.chunk(target, params.batch_size, 0)
         target_1d = torch.cat([target_to_1d[i] for i in range(params.batch_size)], 1)
         target_1d = target_1d.permute(1, 0)
 
-        loss, filtered_pred, filtered_target = model.forward(input_q, input_qa, target_1d)
+        loss, filtered_pred, filtered_target, memory_value = model.forward(input_q, input_qa, target_1d)
 
         right_target = np.asarray(filtered_target.data.tolist())
         right_pred = np.asarray(filtered_pred.data.tolist())
@@ -109,13 +110,4 @@ def test(model, params, optimizer, q_data, qa_data):
     accuracy = metrics.accuracy_score(all_target, all_pred)
     # f1 = metrics.f1_score(all_target, all_pred)
 
-    return epoch_loss/N, accuracy, auc
-
-
-
-
-
-
-
-
-
+    return epoch_loss / N, accuracy, auc
