@@ -8,6 +8,7 @@ from torch import nn
 import utils as utils
 
 
+
 def train(epoch_num, model, params, optimizer, q_data, qa_data):
     N = int(math.floor(len(q_data) / params.batch_size))
 
@@ -36,7 +37,7 @@ def train(epoch_num, model, params, optimizer, q_data, qa_data):
         target_1d = target_1d.permute(1, 0)
 
         model.zero_grad()
-        loss, filtered_pred, filtered_target = model.forward(input_q, input_qa, target_1d)
+        loss, filtered_pred, filtered_target, _ = model.forward(input_q, input_qa, target_1d)
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), params.maxgradnorm)
         optimizer.step()
@@ -84,15 +85,15 @@ def test(model, params, optimizer, q_data, qa_data):
         target = (target - 1) / params.n_question
         target = np.floor(target)
 
-        input_q = utils.varible(torch.LongTensor(q_one_seq), params.gpu)
-        input_qa = utils.varible(torch.LongTensor(qa_batch_seq), params.gpu)
-        target = utils.varible(torch.FloatTensor(target), params.gpu)
+        input_q = utils.varible(torch.LongTensor(q_one_seq), params.gpu)  # shape 32,200
+        input_qa = utils.varible(torch.LongTensor(qa_batch_seq), params.gpu)  # shape 32,200
+        target = utils.varible(torch.FloatTensor(target), params.gpu)  # shape 32,200
 
         target_to_1d = torch.chunk(target, params.batch_size, 0)
         target_1d = torch.cat([target_to_1d[i] for i in range(params.batch_size)], 1)
         target_1d = target_1d.permute(1, 0)
 
-        loss, filtered_pred, filtered_target = model.forward(input_q, input_qa, target_1d)
+        loss, filtered_pred, filtered_target, memory_value = model.forward(input_q, input_qa, target_1d)
 
         right_target = np.asarray(filtered_target.data.tolist())
         right_pred = np.asarray(filtered_pred.data.tolist())

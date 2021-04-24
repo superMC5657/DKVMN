@@ -1,5 +1,5 @@
 import json
-
+import os
 import torch.nn.init
 
 
@@ -23,3 +23,19 @@ def save_checkpoint(state, track_list, filename):
 def adjust_learning_rate(optimizer, lr):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
+
+
+def generate_dir(work_dir):
+    if not os.path.exists(work_dir):
+        os.makedirs(work_dir)
+
+def display_tensorshape(is_display=True):
+    # 只显示 tensor shape
+    if is_display:
+        old_repr = torch.Tensor.__repr__
+
+        def tensor_info(tensor):
+            return repr(tensor.shape)[6:] + ' ' + repr(tensor.dtype)[6:] + '@' + str(tensor.device) + '\n' + old_repr(
+                tensor)
+
+        torch.Tensor.__repr__ = tensor_info
