@@ -1,10 +1,12 @@
-import numpy as np
 import math
+
+import numpy as np
 import torch
-import random
-from torch import nn
-import utils as utils
 from sklearn import metrics
+from torch import nn
+
+import utils as utils
+
 
 def train(epoch_num, model, params, optimizer, q_data, qa_data):
     N = int(math.floor(len(q_data) / params.batch_size))
@@ -62,7 +64,8 @@ def train(epoch_num, model, params, optimizer, q_data, qa_data):
     accuracy = metrics.accuracy_score(all_target, all_pred)
     # f1 = metrics.f1_score(all_target, all_pred)
 
-    return epoch_loss/N, accuracy, auc
+    return epoch_loss / N, accuracy, auc
+
 
 def test(model, params, optimizer, q_data, qa_data):
     N = int(math.floor(len(q_data) / params.batch_size))
@@ -74,7 +77,6 @@ def test(model, params, optimizer, q_data, qa_data):
 
     # init_memory_value = np.random.normal(0.0, params.init_std, ())
     for idx in range(N):
-
         q_one_seq = q_data[idx * params.batch_size:(idx + 1) * params.batch_size, :]
         qa_batch_seq = qa_data[idx * params.batch_size:(idx + 1) * params.batch_size, :]
         target = qa_data[idx * params.batch_size:(idx + 1) * params.batch_size, :]
@@ -109,13 +111,4 @@ def test(model, params, optimizer, q_data, qa_data):
     accuracy = metrics.accuracy_score(all_target, all_pred)
     # f1 = metrics.f1_score(all_target, all_pred)
 
-    return epoch_loss/N, accuracy, auc
-
-
-
-
-
-
-
-
-
+    return epoch_loss / N, accuracy, auc

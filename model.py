@@ -1,13 +1,15 @@
 import torch
 import torch.nn as nn
-from memory import DKVMN
-import numpy as np
+from torch.nn import functional as F
+
 import utils as utils
+from memory import DKVMN
+
 
 class MODEL(nn.Module):
 
     def __init__(self, n_question, batch_size, q_embed_dim, qa_embed_dim,
-                 memory_size, memory_key_state_dim, memory_value_state_dim, final_fc_dim, student_num=None):
+                 memory_size, memory_key_state_dim, memory_value_state_dim, final_fc_dim, gpu=0, student_num=None):
         super(MODEL, self).__init__()
         self.n_question = n_question
         self.batch_size = batch_size
@@ -20,7 +22,8 @@ class MODEL(nn.Module):
         self.student_num = student_num
 
         self.input_embed_linear = nn.Linear(self.q_embed_dim, self.final_fc_dim, bias=True)
-        self.read_embed_linear = nn.Linear(self.memory_value_state_dim + self.final_fc_dim, self.final_fc_dim, bias=True)
+        self.read_embed_linear = nn.Linear(self.memory_value_state_dim + self.final_fc_dim, self.final_fc_dim,
+                                           bias=True)
         self.predict_linear = nn.Linear(self.final_fc_dim, 1, bias=True)
         self.init_memory_key = nn.Parameter(torch.randn(self.memory_size, self.memory_key_state_dim))
         nn.init.kaiming_normal_(self.init_memory_key)
@@ -28,14 +31,15 @@ class MODEL(nn.Module):
         nn.init.kaiming_normal_(self.init_memory_value)
 
         self.mem = DKVMN(memory_size=self.memory_size,
-                   memory_key_state_dim=self.memory_key_state_dim,
-                   memory_value_state_dim=self.memory_value_state_dim, init_memory_key=self.init_memory_key)
+                         memory_key_state_dim=self.memory_key_state_dim,
+                         memory_value_state_dim=self.memory_value_state_dim, init_memory_key=self.init_memory_key)
 
         memory_value = nn.Parameter(torch.cat([self.init_memory_value.unsqueeze(0) for _ in range(batch_size)], 0).data)
         self.mem.init_value_memory(memory_value)
 
         self.q_embed = nn.Embedding(self.n_question + 1, self.q_embed_dim, padding_idx=0)
         self.qa_embed = nn.Embedding(2 * self.n_question + 1, self.qa_embed_dim, padding_idx=0)
+        self.gpu = gpu
 
     def init_params(self):
         nn.init.kaiming_normal_(self.predict_linear.weight)
@@ -46,12 +50,10 @@ class MODEL(nn.Module):
         # nn.init.normal(self.input_embed_linear.weight, std=0.02)
 
     def init_embeddings(self):
-                                                  
         nn.init.kaiming_normal_(self.q_embed.weight)
         nn.init.kaiming_normal_(self.qa_embed.weight)
 
     def forward(self, q_data, qa_data, target, student_id=None):
-
         batch_size = q_data.shape[0]
         seqlen = q_data.shape[1]
         q_embed_data = self.q_embed(q_data)
@@ -72,8 +74,7 @@ class MODEL(nn.Module):
             q = slice_q_embed_data[i].squeeze(1)
             correlation_weight = self.mem.attention(q)
             if_memory_write = slice_q_data[i].squeeze(1).ge(1)
-            if_memory_write = utils.varible(torch.FloatTensor(if_memory_write.data.tolist()), 1)
-
+            if_memory_write = utils.varible(torch.FloatTensor(if_memory_write.data.tolist()), self.gpu)
 
             ## Read Process
             read_content = self.mem.read(correlation_weight)
@@ -94,17 +95,17 @@ class MODEL(nn.Module):
         # input_embed_content = input_embed_content.view(batch_size, seqlen, -1)
 
         predict_input = torch.cat([all_read_value_content, input_embed_content], 2)
-        read_content_embed = torch.tanh(self.read_embed_linear(predict_input.view(batch_size*seqlen, -1)))
+        read_content_embed = torch.tanh(self.read_embed_linear(predict_input.view(batch_size * seqlen, -1)))
 
         pred = self.predict_linear(read_content_embed)
         # predicts = torch.cat([predict_logs[i] for i in range(seqlen)], 1)
-        target_1d = target                   # [batch_size * seq_len, 1]
-        mask = target_1d.ge(0)               # [batch_size * seq_len, 1]
+        target_1d = target  # [batch_size * seq_len, 1]
+        mask = target_1d.ge(0)  # [batch_size * seq_len, 1]
         # pred_1d = predicts.view(-1, 1)           # [batch_size * seq_len, 1]
-        pred_1d = pred.view(-1, 1)           # [batch_size * seq_len, 1]
+        pred_1d = pred.view(-1, 1)  # [batch_size * seq_len, 1]
 
         filtered_pred = torch.masked_select(pred_1d, mask)
         filtered_target = torch.masked_select(target_1d, mask)
-        loss = torch.nn.functional.binary_cross_entropy_with_logits(filtered_pred, filtered_target)
+        loss = F.binary_cross_entropy_with_logits(filtered_pred, filtered_target)
 
         return loss, torch.sigmoid(filtered_pred), filtered_target

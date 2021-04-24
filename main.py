@@ -1,12 +1,11 @@
-import torch
-
 import argparse
-from model import MODEL
-from run import train, test
-import numpy as np
+
+import torch
 import torch.optim as optim
 
 from data_loader import DATA
+from model import MODEL
+from run import train, test
 
 
 def main():
@@ -45,14 +44,13 @@ def main():
         parser.add_argument('--q_embed_dim', type=int, default=50, help='question embedding dimensions')
         parser.add_argument('--qa_embed_dim', type=int, default=100, help='answer and question embedding dimensions')
         parser.add_argument('--memory_size', type=int, default=50, help='memory size')
-        parser.add_argument('--n_question', type=int, default=1223, help='the number of unique questions in the dataset')
+        parser.add_argument('--n_question', type=int, default=1223,
+                            help='the number of unique questions in the dataset')
         parser.add_argument('--seqlen', type=int, default=6, help='the allowed maximum length of a sequence')
         parser.add_argument('--data_dir', type=str, default='./data/STATICS', help='data directory')
         parser.add_argument('--data_name', type=str, default='STATICS', help='data set name')
         parser.add_argument('--load', type=str, default='STATICS', help='model file to load')
         parser.add_argument('--save', type=str, default='STATICS', help='path to save model')
-
-
 
     params = parser.parse_args()
     params.lr = params.init_lr
@@ -80,8 +78,8 @@ def main():
                   memory_size=params.memory_size,
                   memory_key_state_dim=params.memory_key_state_dim,
                   memory_value_state_dim=params.memory_value_state_dim,
-                  final_fc_dim=params.final_fc_dim)
-
+                  final_fc_dim=params.final_fc_dim,
+                  gpu=params.gpu)
 
     model.init_embeddings()
     model.init_params()
@@ -107,10 +105,11 @@ def main():
 
     for idx in range(params.max_iter):
         train_loss, train_accuracy, train_auc = train(idx, model, params, optimizer, train_q_data, train_qa_data)
-        print('Epoch %d/%d, loss : %3.5f, auc : %3.5f, accuracy : %3.5f' % (idx + 1, params.max_iter, train_loss, train_auc, train_accuracy))
+        print('Epoch %d/%d, loss : %3.5f, auc : %3.5f, accuracy : %3.5f' % (
+        idx + 1, params.max_iter, train_loss, train_auc, train_accuracy))
         valid_loss, valid_accuracy, valid_auc = test(model, params, optimizer, valid_q_data, valid_qa_data)
-        print('Epoch %d/%d, valid auc : %3.5f, valid accuracy : %3.5f' % (idx + 1, params.max_iter, valid_auc, valid_accuracy))
-
+        print('Epoch %d/%d, valid auc : %3.5f, valid accuracy : %3.5f' % (
+        idx + 1, params.max_iter, valid_auc, valid_accuracy))
 
         all_train_auc[idx + 1] = train_auc
         all_train_accuracy[idx + 1] = train_accuracy
@@ -126,14 +125,12 @@ def main():
     #         best_epoch = idx+1
     #         best_valid_acc = valid_accuracy
     #         best_valid_loss = valid_loss
-            # test_loss, test_accuracy, test_auc = test(model, params, optimizer, test_q_data, test_qa_data)
-            # print("test_auc: %.4f\ttest_accuracy: %.4f\ttest_loss: %.4f\t" % (test_auc, test_accuracy, test_loss))
-
+    # test_loss, test_accuracy, test_auc = test(model, params, optimizer, test_q_data, test_qa_data)
+    # print("test_auc: %.4f\ttest_accuracy: %.4f\ttest_loss: %.4f\t" % (test_auc, test_accuracy, test_loss))
 
     # print("best outcome: best epoch: %.4f" % (best_epoch))
     # print("valid_auc: %.4f\tvalid_accuracy: %.4f\tvalid_loss: %.4f\t" % (best_valid_auc, best_valid_acc, best_valid_loss))
     # print("test_auc: %.4f\ttest_accuracy: %.4f\ttest_loss: %.4f\t" % (test_auc, test_accuracy, test_loss))
-
 
 
 if __name__ == "__main__":

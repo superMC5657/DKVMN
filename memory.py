@@ -1,7 +1,6 @@
 import torch
-import utils as utils
 from torch import nn
-import numpy as np
+
 
 class DKVMNHeadGroup(nn.Module):
     def __init__(self, memory_size, memory_state_dim, is_write):
@@ -23,7 +22,6 @@ class DKVMNHeadGroup(nn.Module):
             nn.init.constant_(self.erase.bias, 0)
             nn.init.constant_(self.add.bias, 0)
 
-
     def addressing(self, control_input, memory):
         """
         Parameters
@@ -33,7 +31,7 @@ class DKVMNHeadGroup(nn.Module):
             correlation_weight:     Shape (batch_size, memory_size)
         """
         similarity_score = torch.matmul(control_input, torch.t(memory))
-        correlation_weight = torch.nn.functional.softmax(similarity_score, dim=1) # Shape: (batch_size, memory_size)
+        correlation_weight = torch.nn.functional.softmax(similarity_score, dim=1)  # Shape: (batch_size, memory_size)
         return correlation_weight
 
     def read(self, memory, control_input=None, read_weight=None):
@@ -75,6 +73,7 @@ class DKVMNHeadGroup(nn.Module):
         add_mul = torch.mul(add_reshape, write_weight_reshape)
         new_memory = memory * (1 - erase_mult) + add_mul
         return new_memory
+
 
 class DKVMN(nn.Module):
     def __init__(self, memory_size, memory_key_state_dim, memory_value_state_dim, init_memory_key):
