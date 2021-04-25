@@ -70,18 +70,25 @@ def main():
         parser.add_argument('--save', type=str, default='STATICS', help='path to save model')
 
     params = parser.parse_args()
+    model = torch.load(params.save + "/best.pt")
     print(params)
     ## 读取test数据 作为推荐数据集合
     dat = DATA(n_question=params.n_question, seqlen=params.seqlen, separate_char=',')
     test_data_path = params.data_dir + "/" + params.data_name + "_test.csv"
     test_q_data, test_qa_data, test_id = dat.load_data(test_data_path)
-    model = torch.load(params.save + "/best.pt")
+    # 制作 user-q-qa字典 用于推荐以及SR计算
+    id_q_qa = id_q_qa_dict(test_id, test_q_data, test_qa_data)
 
-    ## 读取每个用户的知识矩阵
+    ## 读取每个用户的知识矩阵，协同过滤后得到相似用户
     km = knowledge_matrix(model, params, test_id, test_q_data, test_qa_data)
     user_distance = user_distance_matrix(km, params)
     user_top3 = user_topk(user_distance, 3)
-    print(user_distance)
+
+    ## 使用相似用户，对于该用户推荐，得到推荐习题
+    rec_id = test_id[100]
+    recom_q_id = user_recom_q(rec_id, id_q_qa, user_top3)
+    print(recom_q_id)
+
 
 if __name__ == '__main__':
     main()
