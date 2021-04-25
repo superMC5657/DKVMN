@@ -90,8 +90,7 @@ def main():
                   memory_size=params.memory_size,
                   memory_key_state_dim=params.memory_key_state_dim,
                   memory_value_state_dim=params.memory_value_state_dim,
-                  final_fc_dim=params.final_fc_dim,
-                  gpu=params.gpu)
+                  final_fc_dim=params.final_fc_dim)
 
     model.init_embeddings()
     model.init_params()
