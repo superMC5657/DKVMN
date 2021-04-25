@@ -79,7 +79,7 @@ def user_topk(user_dic, K):
         user_recom_dic[user_id_x] = user_distance_row.keys()[:K]
     return user_recom_dic
 
-def
+
 
 def partition_arg_topk(array, K, axis=0):
     a_part = np.argpartition(array, -K, axis=axis)[-K: len(array)]
