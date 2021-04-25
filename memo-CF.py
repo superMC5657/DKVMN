@@ -74,10 +74,14 @@ def main():
     dat = DATA(n_question=params.n_question, seqlen=params.seqlen, separate_char=',')
     test_data_path = params.data_dir + "/" + params.data_name + "_test.csv"
     test_q_data, test_qa_data, test_id = dat.load_data(test_data_path)
-    model = torch.load(params.save+"/best.pt")
+    model = torch.load(params.save + "/best.pt")
     km = knowledge_matrix(model, params, test_id, test_q_data, test_qa_data)
-
-
+    user_distance = {}
+    for id_x, knowledge_x in km.items():
+        for id_y, knowledge_y in km.items():
+            distance = self_cosine_distance(knowledge_x, knowledge_y)
+            user_distance.update({id_x: {id_y: distance}})
+    return user_distance
 
 
 if __name__ == '__main__':

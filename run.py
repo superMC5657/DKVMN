@@ -1,7 +1,6 @@
 import numpy as np
 import math
 import torch
-import random
 from torch import nn
 import utils as utils
 from sklearn import metrics
@@ -115,6 +114,7 @@ def test(model, params, optimizer, q_data, qa_data):
 def knowledge_matrix(model, params, id, q_data, qa_data):
     parallel = len(id)
     # 一次性加载
+    knowledge_dict = {}
     N = int(math.floor(len(id) / parallel)) # inference 一条一条加载 一次性全加载解决id和matrix匹配问题
     model.eval()
 
@@ -134,8 +134,11 @@ def knowledge_matrix(model, params, id, q_data, qa_data):
         target_1d = torch.cat([target_to_1d[i] for i in range(parallel)], 1)
         target_1d = target_1d.permute(1, 0)
         _, _, _, memory = model.forward(input_q, input_qa, target_1d)
-    #knowledge = {single_id: memory_matrix for single_id, memory_matrix in zip(id, memory_matrix_list)}
-    return memory
-
-
-    pass
+    memory_list = torch.chunk(memory, parallel, 0)
+    # knowledge_dict = {single_id:  for single_id, memory_matrix in zip(id, memory_list)}
+    for single_id, memory_matrix in zip(id, memory_list):
+        if single_id in knowledge_dict.keys():
+            knowledge_dict[single_id] += memory_matrix.squeeze()
+        else:
+            knowledge_dict.update({single_id: memory_matrix.squeeze()})
+    return knowledge_dict

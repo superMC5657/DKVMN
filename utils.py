@@ -1,7 +1,9 @@
 import json
 import os
 import torch.nn.init
-
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+from torch.nn import functional as F
 
 def varible(tensor, gpu):
     if gpu >= 0:
@@ -39,3 +41,17 @@ def display_tensorshape(is_display=True):
                 tensor)
 
         torch.Tensor.__repr__ = tensor_info
+
+def self_cosine_distance(a, b):
+    return torch.cosine_similarity(a, b, )
+
+def partition_arg_topk(array, K, axis=0):
+    a_part = np.argpartition(array, -K, axis=axis)[-K: len(array)]
+    if axis == 0:
+        row_index = np.arange(array.shape[1 - axis])
+        a_sec_argsort_K = np.argsort(array[a_part[0:K, :], row_index], axis=axis)
+        return a_part[0:K, :][a_sec_argsort_K, row_index][::-1]
+    else:
+        column_index = np.arange(array.shape[1 - axis])[:, None]
+        a_sec_argsort_K = np.argsort(array[column_index, a_part[:, 0:K]], axis=axis)
+        return a_part[:, 0:K][column_index, a_sec_argsort_K][::-1]
