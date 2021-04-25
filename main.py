@@ -43,7 +43,7 @@ def main():
         parser.add_argument('--q_embed_dim', type=int, default=50, help='question embedding dimensions')
         parser.add_argument('--batch_size', type=int, default=32, help='the batch size')
         parser.add_argument('--qa_embed_dim', type=int, default=200, help='answer and question embedding dimensions')
-        parser.add_argument('--memory_size', type=int, default=20, help='memory size')
+        parser.add_argument('--memory_size', type=int, default=1, help='memory size')
         parser.add_argument('--n_question', type=int, default=110, help='the number of unique questions in the dataset')
         parser.add_argument('--seqlen', type=int, default=200, help='the allowed maximum length of a sequence')
         parser.add_argument('--data_dir', type=str, default='data/assist2009_updated', help='data directory')

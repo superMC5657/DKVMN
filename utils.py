@@ -55,10 +55,6 @@ def id_q_qa_dict(ids, qs, qas):
     return id_q_qa
 
 
-def self_cosine_distance(a, b):
-    return torch.cosine_similarity(a, b)
-
-
 def self_euclid_distance(a, b):
     return torch.dist(a, b)
 
@@ -75,8 +71,8 @@ def user_distance_matrix(knowledge_matrix, params):
         user_distance_y = {}
         for id_y, knowledge_y in knowledge_matrix.items():
             # 把自己和自己的距离记做正无穷
-            distance = varible(torch.tensor(float('inf')), params.gpu) if id_x == id_y else torch.dist(knowledge_x,
-                                                                                                       knowledge_y)
+            distance = varible(torch.tensor(float('inf')), params.gpu) if id_x == id_y else \
+                torch.cosine_similarity(knowledge_x, knowledge_y, dim=0)
             user_distance_y[id_y] = distance.cpu().detach().numpy()  # 把距离放到内存上，去除梯度，转为np
             # user_distance[id_x].append({id_y:distance})
         user_distance[id_x] = user_distance_y
@@ -117,7 +113,7 @@ def user_recom_q(user_id, id_q_qa_dic, user_recom_topn, rec_q_len=-1):
     if rec_q_len == -1:
         return recomd_q
     elif len(recomd_q) >= rec_q_len:
-            return recomd_q[:rec_q_len]
+        return recomd_q[:rec_q_len]
     else:
         print(f"可推荐习题数量达不到{rec_q_len}")
         return recomd_q

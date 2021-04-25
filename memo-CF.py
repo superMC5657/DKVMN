@@ -7,6 +7,7 @@ import torch
 import random
 import argparse
 from model import MODEL
+from run import knowledge_matrix
 from utils import *
 import numpy as np
 from data_loader import DATA
@@ -48,13 +49,13 @@ def main():
         parser.add_argument('--q_embed_dim', type=int, default=50, help='question embedding dimensions')
         parser.add_argument('--batch_size', type=int, default=32, help='the batch size')
         parser.add_argument('--qa_embed_dim', type=int, default=200, help='answer and question embedding dimensions')
-        parser.add_argument('--memory_size', type=int, default=20, help='memory size')
+        parser.add_argument('--memory_size', type=int, default=1, help='memory size')
         parser.add_argument('--n_question', type=int, default=110, help='the number of unique questions in the dataset')
         parser.add_argument('--seqlen', type=int, default=200, help='the allowed maximum length of a sequence')
-        parser.add_argument('--data_dir', type=str, default='./data/assist2009_updated', help='data directory')
+        parser.add_argument('--data_dir', type=str, default='data/assist2009_updated', help='data directory')
         parser.add_argument('--data_name', type=str, default='assist2009_updated', help='data set name')
-        parser.add_argument('--load', type=str, default='data/assist2009_updated', help='model file to load')
-        parser.add_argument('--save', type=str, default='data/assist2009_updated/model', help='path to save model')
+        parser.add_argument('--load', type=str, default='checkpoints', help='model file to load')
+        parser.add_argument('--save', type=str, default='checkpoints', help='path to save model')
 
     elif dataset == 'STATICS':
         parser.add_argument('--batch_size', type=int, default=10, help='the batch size')
@@ -70,7 +71,8 @@ def main():
         parser.add_argument('--save', type=str, default='STATICS', help='path to save model')
 
     params = parser.parse_args()
-    model = torch.load(params.save + "/best.pt")
+    model_path = os.path.join(params.save, params.data_name, 'Epoch2-test_auc0.78-val_auc0.77-loss0.53.pt')
+    model = torch.load(model_path)
     print(params)
     ## 读取test数据 作为推荐数据集合
     dat = DATA(n_question=params.n_question, seqlen=params.seqlen, separate_char=',')
@@ -85,7 +87,7 @@ def main():
     user_top3 = user_topk(user_distance, 3)
 
     ## 使用相似用户，对于该用户推荐，得到推荐习题
-    rec_id = test_id[100]
+    rec_id = test_id[101]
     recom_q_id = user_recom_q(rec_id, id_q_qa, user_top3)
     print(recom_q_id)
 
